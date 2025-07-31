@@ -17,11 +17,26 @@ BLACKLIST = cfg["blacklist"]
 openai.api_key = OPENAI_API_KEY
 
 client = discord.Client(self_bot=True)
+message_queue: asyncio.Queue[discord.Message] = asyncio.Queue(maxsize=1)
+
+async def process_queue() -> None:
+    while True:
+        message = await message_queue.get()
+        lower_msg = message.content.lower()
+        if "who receive big drop" in lower_msg or "who received big drop" in lower_msg:
+            await asyncio.sleep(random.uniform(0.5, 2.0))
+            await message.channel.send("OF COURSE YOU BRO!!!")
+        else:
+            reply = await generate_reply(message.content)
+            await asyncio.sleep(random.uniform(15.5, 120.0))
+            await message.channel.send(reply)
+        message_queue.task_done()
 
 
 @client.event
 async def on_ready():
     print(f"[✅] Logged in as {client.user}")
+    client.loop.create_task(process_queue())
 
 def is_blacklisted(text: str) -> bool:
     """Check if any blacklist word is present in the text."""
@@ -81,12 +96,10 @@ async def on_message(message: discord.Message):
         return
 
     print(f"[📩] {message.author.display_name}: {message.content}")
-    lower_msg = message.content.lower()
-    if "who receive big drop" in lower_msg or "who received big drop" in lower_msg:
-        await asyncio.sleep(random.uniform(0.5, 2.0))
-        await message.channel.send("OF COURSE YOU BRO!!!")
-        return
-    reply = await generate_reply(message.content)
-    await asyncio.sleep(random.uniform(15.5, 120.0))
-    await message.channel.send(reply)
+    if message_queue.full():
+        try:
+            message_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            pass
+    await message_queue.put(message)
 client.run(TOKEN)
