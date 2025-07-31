@@ -9,6 +9,7 @@ This project is a simple OpenAI powered selfbot that automatically replies to me
 
 - Generates short, friendly replies using GPT-4
 - Word blacklist to skip certain messages
+- Skips messages without real words (links or gibberish)
 - GUI (`config_gui.py`) to create the `config.json` file
 
 ---
