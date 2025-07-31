@@ -1,6 +1,7 @@
 import json
 import random
 import asyncio
+import re
 import discord
 import openai
 
@@ -25,6 +26,18 @@ async def on_ready():
 def is_blacklisted(text: str) -> bool:
     """Check if any blacklist word is present in the text."""
     return any(bad.lower() in text.lower() for bad in BLACKLIST)
+
+def contains_real_words(text: str) -> bool:
+    """Return True if the text contains at least one real-looking word."""
+    # Ignore typical links
+    if re.search(r"https?://|www\.\S+|\.[a-z]{2,3}/?", text, re.IGNORECASE):
+        return False
+
+    # Look for tokens with letters and at least one vowel
+    for token in re.findall(r"[A-Za-z]{2,}", text):
+        if re.search(r"[aeiouAEIOU]", token):
+            return True
+    return False
 
 async def generate_reply(msg: str) -> str:
     try:
@@ -62,6 +75,9 @@ async def on_message(message: discord.Message):
         return
     if is_blacklisted(message.content):
         print("[⚠️] Skipped blacklisted message")
+        return
+    if not contains_real_words(message.content):
+        print("[⚠️] Skipped message with no real words")
         return
 
     print(f"[📩] {message.author.display_name}: {message.content}")
