@@ -1,4 +1,6 @@
 import json
+import random
+import asyncio
 import discord
 import openai
 
@@ -31,12 +33,16 @@ async def generate_reply(msg: str) -> str:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful friend chatting naturally. Keep responses concise and human-like."
+                    "content": (
+                        "You are a Counter-Strike 2 gamer chatting casually. "
+                        "You're friendly but sometimes sarcastic and a little wild. "
+                        "Keep replies short and never mention that you are an AI."
+                    )
                 },
                 {"role": "user", "content": msg},
             ],
             max_tokens=120,
-            temperature=0.7,
+            temperature=0.9,
         )
         reply = response["choices"][0]["message"]["content"].strip()
         return reply
@@ -57,7 +63,13 @@ async def on_message(message: discord.Message):
         return
 
     print(f"[📩] {message.author.display_name}: {message.content}")
+    lower_msg = message.content.lower()
+    if "who receive big drop" in lower_msg or "who received big drop" in lower_msg:
+        await asyncio.sleep(random.uniform(0.5, 2.0))
+        await message.channel.send("OF COURSE YOU BRO!!!")
+        return
     reply = await generate_reply(message.content)
+    await asyncio.sleep(random.uniform(0.5, 2.0))
     await message.channel.send(reply)
 
 client.run(TOKEN)
