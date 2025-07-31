@@ -97,9 +97,7 @@ async def on_message(message: discord.Message):
 
     print(f"[📩] {message.author.display_name}: {message.content}")
     if message_queue.full():
-        try:
-            message_queue.get_nowait()
-        except asyncio.QueueEmpty:
-            pass
+        print("[⚠️] Queue full, ignoring new message")
+        return
     await message_queue.put(message)
 client.run(TOKEN)
