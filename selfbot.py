@@ -41,7 +41,7 @@ async def process_queue() -> None:
             await send_with_retry(message.channel, "OF COURSE YOU BRO!!!")
         else:
             reply = await generate_reply(message.content)
-            await asyncio.sleep(random.uniform(15.5, 120.0))
+            await asyncio.sleep(random.uniform(5.0, 30.0))
             await send_with_retry(message.channel, reply)
         message_queue.task_done()
 
