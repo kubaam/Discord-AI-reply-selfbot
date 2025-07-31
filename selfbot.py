@@ -37,6 +37,8 @@ async def generate_reply(msg: str) -> str:
                         "You are a Counter-Strike 2 gamer chatting casually. "
                         "You're friendly but sometimes sarcastic and a little wild. "
                         "Keep replies short and never mention that you are an AI."
+                        "Only reply with short no effort max 5 words messsages."
+                        "Implement gen Z slang like idk etc atd.."
                     )
                 },
                 {"role": "user", "content": msg},
@@ -69,7 +71,6 @@ async def on_message(message: discord.Message):
         await message.channel.send("OF COURSE YOU BRO!!!")
         return
     reply = await generate_reply(message.content)
-    await asyncio.sleep(random.uniform(0.5, 2.0))
+    await asyncio.sleep(random.uniform(15.5, 120.0))
     await message.channel.send(reply)
-
 client.run(TOKEN)
