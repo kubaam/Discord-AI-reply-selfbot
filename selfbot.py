@@ -1,18 +1,33 @@
 import json
+import os
 import random
 import asyncio
 import re
+import logging
 import discord
 import openai
 
-with open("config.json") as f:
-    cfg = json.load(f)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
 
-TOKEN = cfg["token"]
-GUILD_ID = cfg["guild_id"]
-CHANNEL_ID = cfg["channel_id"]
-OPENAI_API_KEY = cfg["openai_key"]
-BLACKLIST = cfg["blacklist"]
+if os.path.exists("config.json"):
+    with open("config.json") as f:
+        cfg = json.load(f)
+else:
+    cfg = {}
+
+TOKEN = os.getenv("DISCORD_TOKEN", cfg.get("token"))
+GUILD_ID = int(os.getenv("GUILD_ID", cfg.get("guild_id", 0)))
+CHANNEL_ID = int(os.getenv("CHANNEL_ID", cfg.get("channel_id", 0)))
+OPENAI_API_KEY = os.getenv("OPENAI_KEY", cfg.get("openai_key", ""))
+BLACKLIST = cfg.get("blacklist", [])
+
+if not TOKEN or not OPENAI_API_KEY or GUILD_ID == 0 or CHANNEL_ID == 0:
+    raise RuntimeError(
+        "Missing configuration. Set environment variables or run config_gui.py"
+    )
 
 openai.api_key = OPENAI_API_KEY
 
@@ -27,10 +42,10 @@ async def send_with_retry(channel: discord.abc.Messageable, text: str, retries: 
             return
         except discord.HTTPException as exc:
             if attempt < retries:
-                print(f"[⚠️] Send failed, retrying in {delay}s: {exc}")
+                logging.warning("Send failed, retrying in %ss: %s", delay, exc)
                 await asyncio.sleep(delay)
             else:
-                print(f"[❌] Couldn't send message after retry: {exc}")
+                logging.error("Couldn't send message after retry: %s", exc)
 
 async def process_queue() -> None:
     while True:
@@ -48,7 +63,7 @@ async def process_queue() -> None:
 
 @client.event
 async def on_ready():
-    print(f"[✅] Logged in as {client.user}")
+    logging.info("Logged in as %s", client.user)
     client.loop.create_task(process_queue())
 
 def is_blacklisted(text: str) -> bool:
@@ -91,7 +106,7 @@ async def generate_reply(msg: str) -> str:
         reply = response["choices"][0]["message"]["content"].strip()
         return reply
     except Exception as exc:
-        print(f"[❌] Error: {exc}")
+        logging.error("Error when contacting OpenAI API: %s", exc)
         return "Sorry, I couldn't come up with a reply."
 
 @client.event
@@ -103,15 +118,15 @@ async def on_message(message: discord.Message):
     if message.channel.id != CHANNEL_ID:
         return
     if is_blacklisted(message.content):
-        print("[⚠️] Skipped blacklisted message")
+        logging.warning("Skipped blacklisted message")
         return
     if not contains_real_words(message.content):
-        print("[⚠️] Skipped message with no real words")
+        logging.warning("Skipped message with no real words")
         return
 
-    print(f"[📩] {message.author.display_name}: {message.content}")
+    logging.info("%s: %s", message.author.display_name, message.content)
     if message_queue.full():
-        print("[⚠️] Queue full, ignoring new message")
+        logging.warning("Queue full, ignoring new message")
         return
     await message_queue.put(message)
 client.run(TOKEN)

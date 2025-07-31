@@ -1,6 +1,13 @@
 # Discord AI Reply Selfbot
 
-This project is a simple OpenAI powered selfbot that automatically replies to messages in a chosen Discord channel. It now aims to produce more natural, human-like responses.
+This project is a simple OpenAI powered selfbot that automatically replies to
+messages in a chosen Discord channel. It now aims to produce more natural,
+human-like responses.
+
+> **Warning**
+> Using selfbots violates the Discord [Terms of Service](https://discord.com/terms).
+> This repository is provided for educational purposes only. Running the bot on
+> a real account can lead to account termination.
 
 ---
 
@@ -17,7 +24,7 @@ This project is a simple OpenAI powered selfbot that automatically replies to me
 
 ## Getting Started
 
-1. Install the dependencies:
+1. Install the dependencies (Python 3.10 or newer is recommended):
    ```bash
    pip install -r requirements.txt
    ```
@@ -29,3 +36,7 @@ This project is a simple OpenAI powered selfbot that automatically replies to me
    ```bash
    python selfbot.py
    ```
+
+You can also provide configuration values via environment variables
+(`DISCORD_TOKEN`, `GUILD_ID`, `CHANNEL_ID`, and `OPENAI_KEY`) which will take
+precedence over values in `config.json`.
